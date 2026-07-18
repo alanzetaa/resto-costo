@@ -69,8 +69,8 @@ export function LandingPage() {
           Gestión para restaurantes, todo en un mismo lugar
         </h1>
         <p style={{ maxWidth: 620, marginTop: '1.25rem', color: 'var(--rc-text-muted)', fontSize: '1.15rem' }}>
-          Costeá tus recetas al instante, controlá el precio de cada insumo y tomá decisiones con datos reales —
-          pensado para restaurantes de alta gama.
+          Costeá tus recetas al instante, controlá el precio de cada insumo y tomá decisiones con datos reales, todo
+          en un solo lugar.
         </p>
       </section>
 

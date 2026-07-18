@@ -1,6 +1,6 @@
 # RestoCosto
 
-Plataforma de costeo para restaurantes de alta gama. Primer módulo de un sistema modular más amplio, inspirado en la experiencia de uso de [biddit.com.ar](https://biddit.com.ar) pero con identidad visual propia (gama de azules/celestes) y un dominio de negocio distinto: costeo de alimentos, recetas y listas de precio.
+Plataforma de gestión y costeo para restaurantes. Primer módulo de un sistema modular más amplio, inspirado en la experiencia de uso de [biddit.com.ar](https://biddit.com.ar) pero con identidad visual propia (gama de azules/celestes) y un dominio de negocio distinto: costeo de alimentos, recetas y listas de precio.
 
 ---
 
