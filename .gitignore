@@ -9,6 +9,7 @@ dist-ssr
 .env.*.local
 
 .vercel
+scripts/reports
 
 *.log
 npm-debug.log*
