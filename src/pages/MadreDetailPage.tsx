@@ -252,7 +252,10 @@ export function MadreDetailPage() {
             {lineas.map((l) => (
               <tr key={l.id} style={{ borderBottom: '1px solid var(--rc-border)' }}>
                 <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>
-                  {l.nombre} {l.insumo_type === 'preparacion' && <span className="rc-badge rc-badge-admin">Madre</span>}
+                  <span className={l.insumo_type === 'preparacion' ? 'rc-badge rc-badge-super_admin' : 'rc-badge rc-badge-admin'} style={{ marginRight: '0.5rem' }}>
+                    {l.insumo_type === 'preparacion' ? 'Madre' : 'Producto'}
+                  </span>
+                  {l.nombre}
                 </td>
                 <td>
                   <input
