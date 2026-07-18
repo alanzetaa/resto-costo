@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useSortableTable } from '../lib/useSortableTable'
+import { SortableTh } from '../components/ui/SortableTh'
 
 interface RoleAssignmentRow {
   email: string
@@ -51,6 +53,8 @@ export function AccesosPage() {
   useEffect(() => {
     loadAccessRows()
   }, [])
+
+  const { sorted, sortKey, direction, toggleSort } = useSortableTable<AccessRow>(rows, 'email')
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -138,13 +142,13 @@ export function AccesosPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
-                <th style={{ padding: '0.5rem 0' }}>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
+                <SortableTh label="Email" active={sortKey === 'email'} direction={direction} onClick={() => toggleSort('email')} style={{ padding: '0.5rem 0' }} />
+                <SortableTh label="Rol" active={sortKey === 'role'} direction={direction} onClick={() => toggleSort('role')} />
+                <SortableTh label="Estado" active={sortKey === 'estado'} direction={direction} onClick={() => toggleSort('estado')} />
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {sorted.map((row) => (
                 <tr key={row.email} style={{ borderBottom: '1px solid var(--rc-border)' }}>
                   <td style={{ padding: '0.5rem 0' }}>{row.email}</td>
                   <td>{row.role}</td>

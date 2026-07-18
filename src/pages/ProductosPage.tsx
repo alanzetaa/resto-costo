@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import { Modal as ModalShell } from '../components/ui/Modal'
 import { toSentenceCase } from '../lib/textFormat'
+import { useSortableTable } from '../lib/useSortableTable'
+import { SortableTh } from '../components/ui/SortableTh'
 
 interface Producto {
   id: string
@@ -74,6 +76,8 @@ export function ProductosPage() {
         (p.categoria ?? '').toLowerCase().includes(q),
     )
   }, [productos, search])
+
+  const { sorted, sortKey, direction, toggleSort } = useSortableTable<Producto>(filtered, 'descripcion')
 
   function openEdit(p: Producto) {
     setError(null)
@@ -154,20 +158,20 @@ export function ProductosPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
-                <th style={{ padding: '0.5rem 0.5rem 0.5rem 0' }}>Código</th>
-                <th>Descripción</th>
-                <th>Proveedor</th>
-                <th>Categoría</th>
-                <th>Precio compra</th>
-                <th>Desc. %</th>
-                <th>Unidad</th>
-                <th>Cant. envase</th>
-                <th>Precio unitario</th>
+                <SortableTh label="Código" active={sortKey === 'codigo'} direction={direction} onClick={() => toggleSort('codigo')} style={{ padding: '0.5rem 0.5rem 0.5rem 0' }} />
+                <SortableTh label="Descripción" active={sortKey === 'descripcion'} direction={direction} onClick={() => toggleSort('descripcion')} />
+                <SortableTh label="Proveedor" active={sortKey === 'proveedor'} direction={direction} onClick={() => toggleSort('proveedor')} />
+                <SortableTh label="Categoría" active={sortKey === 'categoria'} direction={direction} onClick={() => toggleSort('categoria')} />
+                <SortableTh label="Precio compra" active={sortKey === 'precio_compra'} direction={direction} onClick={() => toggleSort('precio_compra')} />
+                <SortableTh label="Desc. %" active={sortKey === 'descuento_pct'} direction={direction} onClick={() => toggleSort('descuento_pct')} />
+                <SortableTh label="Unidad" active={sortKey === 'unidad'} direction={direction} onClick={() => toggleSort('unidad')} />
+                <SortableTh label="Cant. envase" active={sortKey === 'cantidad_envase'} direction={direction} onClick={() => toggleSort('cantidad_envase')} />
+                <SortableTh label="Precio unitario" active={sortKey === 'precio_unitario'} direction={direction} onClick={() => toggleSort('precio_unitario')} />
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
+              {sorted.map((p) => (
                 <tr key={p.id} style={{ borderBottom: '1px solid var(--rc-border)' }}>
                   <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{p.codigo}</td>
                   <td>{p.descripcion}</td>

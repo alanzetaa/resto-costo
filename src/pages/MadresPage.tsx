@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useSortableTable } from '../lib/useSortableTable'
+import { SortableTh } from '../components/ui/SortableTh'
 
 interface Preparacion {
   id: string
   nombre: string
   venue: string
   rubro_id: string | null
+}
+
+interface PreparacionRow extends Preparacion {
+  rubroNombre: string
+  costo: number
 }
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
@@ -70,6 +77,17 @@ export function MadresPage() {
     })
   }, [preparaciones, search, venueFilter])
 
+  const rows: PreparacionRow[] = useMemo(
+    () =>
+      filtered.map((p) => ({
+        ...p,
+        rubroNombre: p.rubro_id ? rubroNombreById.get(p.rubro_id) ?? '' : '',
+        costo: costoById.get(p.id) ?? 0,
+      })),
+    [filtered, rubroNombreById, costoById],
+  )
+  const { sorted, sortKey, direction, toggleSort } = useSortableTable<PreparacionRow>(rows, 'nombre')
+
   async function handleNueva() {
     setCreating(true)
     const { data, error } = await supabase
@@ -115,15 +133,15 @@ export function MadresPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
-                <th style={{ padding: '0.5rem 0.5rem 0.5rem 0' }}>Nombre</th>
-                <th>Venue</th>
-                <th>Rubro</th>
-                <th>Costo con merma</th>
+                <SortableTh label="Nombre" active={sortKey === 'nombre'} direction={direction} onClick={() => toggleSort('nombre')} style={{ padding: '0.5rem 0.5rem 0.5rem 0' }} />
+                <SortableTh label="Venue" active={sortKey === 'venue'} direction={direction} onClick={() => toggleSort('venue')} />
+                <SortableTh label="Rubro" active={sortKey === 'rubroNombre'} direction={direction} onClick={() => toggleSort('rubroNombre')} />
+                <SortableTh label="Costo con merma" active={sortKey === 'costo'} direction={direction} onClick={() => toggleSort('costo')} />
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
+              {sorted.map((p) => (
                 <tr
                   key={p.id}
                   style={{ borderBottom: '1px solid var(--rc-border)', cursor: 'pointer' }}
@@ -131,8 +149,8 @@ export function MadresPage() {
                 >
                   <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{p.nombre}</td>
                   <td style={{ textTransform: 'capitalize' }}>{p.venue}</td>
-                  <td>{p.rubro_id ? rubroNombreById.get(p.rubro_id) ?? '—' : '—'}</td>
-                  <td>{money.format(costoById.get(p.id) ?? 0)}</td>
+                  <td>{p.rubroNombre || '—'}</td>
+                  <td>{money.format(p.costo)}</td>
                   <td>
                     <span className="rc-btn rc-btn-secondary">Ver</span>
                   </td>

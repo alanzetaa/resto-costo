@@ -2,6 +2,15 @@
   box-sizing: border-box;
 }
 
+.rc-th-sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.rc-th-sortable:hover {
+  color: var(--rc-primary);
+}
+
 html,
 body,
 #root {

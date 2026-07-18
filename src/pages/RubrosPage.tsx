@@ -2,6 +2,8 @@ import { FormEvent, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { Modal } from '../components/ui/Modal'
 import { toSentenceCase } from '../lib/textFormat'
+import { useSortableTable } from '../lib/useSortableTable'
+import { SortableTh } from '../components/ui/SortableTh'
 
 interface Rubro {
   id: string
@@ -40,6 +42,8 @@ export function RubrosPage() {
     setObjetivos((o ?? []) as Objetivo[])
     setLoading(false)
   }
+
+  const { sorted, sortKey, direction, toggleSort } = useSortableTable<Rubro>(rubros, 'descripcion')
 
   useEffect(() => {
     load()
@@ -88,15 +92,15 @@ export function RubrosPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
-                <th style={{ padding: '0.5rem 0.5rem 0.5rem 0' }}>Código</th>
-                <th>Descripción</th>
+                <SortableTh label="Código" active={sortKey === 'codigo'} direction={direction} onClick={() => toggleSort('codigo')} style={{ padding: '0.5rem 0.5rem 0.5rem 0' }} />
+                <SortableTh label="Descripción" active={sortKey === 'descripcion'} direction={direction} onClick={() => toggleSort('descripcion')} />
                 {listas.map((l) => (
                   <th key={l.id}>{l.nombre}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rubros.map((r) => (
+              {sorted.map((r) => (
                 <tr key={r.id} style={{ borderBottom: '1px solid var(--rc-border)' }}>
                   <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{r.codigo}</td>
                   <td>
