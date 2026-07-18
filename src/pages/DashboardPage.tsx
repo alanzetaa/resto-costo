@@ -1,28 +1,29 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import { calcularSubtotalesBulk } from '../lib/bulkCosteo'
 
-const DIAS_DESACTUALIZADO = 60
-const UMBRAL_PUNTOS = 0.05
-
-interface AlertaFoodCost {
-  id: string
-  nombre: string
-  foodCostReal: number
-  objetivo: number
+interface Resumen {
+  productos: number
+  madres: number
+  recetas: number
+  rubros: number
+  costoPromedioReceta: number
+  costoPromedioMadre: number
+  recetasConPrecio: number
+  productoMasCaro: { descripcion: string; precio: number } | null
 }
 
-interface AlertaProducto {
-  id: string
-  codigo: string
-  descripcion: string
-  updatedAt: string
-}
+const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 
-const pct = (n: number) => `${(n * 100).toFixed(1)}%`
-const dateFmt = (iso: string) => new Date(iso).toLocaleDateString('es-AR')
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rc-card" style={{ flex: '1 1 200px' }}>
+      <div style={{ fontSize: '0.8rem', color: 'var(--rc-text-muted)' }}>{label}</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--rc-primary)' }}>{value}</div>
+    </div>
+  )
+}
 
 export function DashboardPage() {
   const { profile } = useAuth()
@@ -32,9 +33,8 @@ export function DashboardPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  const [alertasFoodCost, setAlertasFoodCost] = useState<AlertaFoodCost[]>([])
-  const [productosDesactualizados, setProductosDesactualizados] = useState<AlertaProducto[]>([])
-  const [loadingAlertas, setLoadingAlertas] = useState(true)
+  const [resumen, setResumen] = useState<Resumen | null>(null)
+  const [loadingResumen, setLoadingResumen] = useState(true)
 
   async function load() {
     setLoading(true)
@@ -44,60 +44,60 @@ export function DashboardPage() {
     setLoading(false)
   }
 
-  async function loadAlertas() {
-    setLoadingAlertas(true)
+  async function loadResumen() {
+    setLoadingResumen(true)
 
-    const [{ data: recetas }, { data: listaUno }, { data: config }] = await Promise.all([
-      supabase.from('recetas').select('id, nombre, rubro_id, precio_actual'),
-      supabase.from('listas_precio').select('id').eq('codigo', 'LISTA_1').maybeSingle(),
-      supabase.from('configuracion').select('merma_pct, iva_pct').single(),
+    const [
+      { count: productos },
+      { count: madres },
+      { count: recetas },
+      { count: rubros },
+      { count: recetasConPrecio },
+      { data: config },
+      { data: preps },
+      { data: recetasData },
+      { data: masCaro },
+    ] = await Promise.all([
+      supabase.from('productos').select('id', { count: 'exact', head: true }),
+      supabase.from('preparaciones').select('id', { count: 'exact', head: true }),
+      supabase.from('recetas').select('id', { count: 'exact', head: true }),
+      supabase.from('rubros').select('id', { count: 'exact', head: true }),
+      supabase.from('recetas').select('id', { count: 'exact', head: true }).not('precio_actual', 'is', null),
+      supabase.from('configuracion').select('merma_pct'),
+      supabase.from('preparaciones').select('id'),
+      supabase.from('recetas').select('id'),
+      supabase.from('productos').select('descripcion, precio_compra').order('precio_compra', { ascending: false }).limit(1).maybeSingle(),
     ])
 
-    if (listaUno && recetas) {
-      const { data: objetivos } = await supabase.from('rubro_lista_objetivo').select('rubro_id, food_cost_pct').eq('lista_id', listaUno.id)
-      const objetivoByRubro = new Map((objetivos ?? []).map((o) => [o.rubro_id, o.food_cost_pct]))
-      const merma = Number(config?.merma_pct ?? 0.05)
-      const iva = Number(config?.iva_pct ?? 0.21)
+    const merma = Number(config?.[0]?.merma_pct ?? 0.05)
 
-      const conPrecio = recetas.filter((r) => r.precio_actual && r.rubro_id)
-      const subtotales = await calcularSubtotalesBulk(
-        supabase,
-        'receta_ingredientes',
-        conPrecio.map((r) => r.id),
-      )
+    const [subtotalMadres, subtotalRecetas] = await Promise.all([
+      calcularSubtotalesBulk(supabase, 'preparacion_ingredientes', (preps ?? []).map((p) => p.id)),
+      calcularSubtotalesBulk(supabase, 'receta_ingredientes', (recetasData ?? []).map((r) => r.id)),
+    ])
 
-      const alertas: AlertaFoodCost[] = []
-      for (const r of conPrecio) {
-        const objetivo = objetivoByRubro.get(r.rubro_id!)
-        if (objetivo === undefined) continue
-        const subtotal = subtotales.get(r.id) ?? 0
-        const costoConMerma = subtotal * (1 + merma)
-        const foodCostReal = (costoConMerma * (1 + iva)) / r.precio_actual!
-        if (foodCostReal - objetivo > UMBRAL_PUNTOS) {
-          alertas.push({ id: r.id, nombre: r.nombre, foodCostReal, objetivo })
-        }
-      }
-      alertas.sort((a, b) => b.foodCostReal - b.objetivo - (a.foodCostReal - a.objetivo))
-      setAlertasFoodCost(alertas.slice(0, 10))
+    const promedio = (mapa: Map<string, number>) => {
+      if (mapa.size === 0) return 0
+      const total = [...mapa.values()].reduce((s, v) => s + v * (1 + merma), 0)
+      return total / mapa.size
     }
 
-    const fechaLimite = new Date(Date.now() - DIAS_DESACTUALIZADO * 24 * 3600 * 1000).toISOString()
-    const { data: productosViejos } = await supabase
-      .from('productos')
-      .select('id, codigo, descripcion, updated_at')
-      .lt('updated_at', fechaLimite)
-      .order('updated_at', { ascending: true })
-      .limit(10)
-    setProductosDesactualizados(
-      (productosViejos ?? []).map((p) => ({ id: p.id, codigo: p.codigo, descripcion: p.descripcion, updatedAt: p.updated_at })),
-    )
-
-    setLoadingAlertas(false)
+    setResumen({
+      productos: productos ?? 0,
+      madres: madres ?? 0,
+      recetas: recetas ?? 0,
+      rubros: rubros ?? 0,
+      costoPromedioReceta: promedio(subtotalRecetas),
+      costoPromedioMadre: promedio(subtotalMadres),
+      recetasConPrecio: recetasConPrecio ?? 0,
+      productoMasCaro: masCaro ? { descripcion: masCaro.descripcion, precio: masCaro.precio_compra } : null,
+    })
+    setLoadingResumen(false)
   }
 
   useEffect(() => {
     load()
-    loadAlertas()
+    loadResumen()
   }, [])
 
   async function handleSubmit(e: FormEvent) {
@@ -120,7 +120,7 @@ export function DashboardPage() {
       return
     }
     setMessage({ type: 'success', text: 'Guardado. El costeo de todas las Madres y Recetas ya usa este valor.' })
-    loadAlertas()
+    loadResumen()
   }
 
   return (
@@ -130,49 +130,23 @@ export function DashboardPage() {
         <p>Bienvenido, {profile?.email}.</p>
       </div>
 
-      <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        <div className="rc-card" style={{ flex: '1 1 320px' }}>
-          <h3 style={{ marginTop: 0 }}>Food cost fuera de objetivo</h3>
-          <p style={{ marginTop: 0, fontSize: '0.82rem', color: 'var(--rc-text-muted)' }}>
-            Recetas con precio actual cargado cuyo food cost real supera en más de 5 puntos el objetivo de Lista 1.
-          </p>
-          {loadingAlertas ? (
-            <p style={{ color: 'var(--rc-text-muted)' }}>Cargando...</p>
-          ) : alertasFoodCost.length === 0 ? (
-            <p style={{ color: 'var(--rc-success)', fontSize: '0.9rem' }}>Todo dentro de objetivo. 🎉</p>
-          ) : (
-            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.88rem' }}>
-              {alertasFoodCost.map((a) => (
-                <li key={a.id} style={{ marginBottom: '0.35rem' }}>
-                  <Link to={`/recetas/${a.id}`}>{a.nombre}</Link>{' '}
-                  <span style={{ color: 'var(--rc-danger)' }}>
-                    {pct(a.foodCostReal)} real vs. {pct(a.objetivo)} objetivo
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="rc-card" style={{ flex: '1 1 320px' }}>
-          <h3 style={{ marginTop: 0 }}>Precios de insumo desactualizados</h3>
-          <p style={{ marginTop: 0, fontSize: '0.82rem', color: 'var(--rc-text-muted)' }}>
-            Productos sin cambios de precio hace más de {DIAS_DESACTUALIZADO} días.
-          </p>
-          {loadingAlertas ? (
-            <p style={{ color: 'var(--rc-text-muted)' }}>Cargando...</p>
-          ) : productosDesactualizados.length === 0 ? (
-            <p style={{ color: 'var(--rc-success)', fontSize: '0.9rem' }}>Todo actualizado. 🎉</p>
-          ) : (
-            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.88rem' }}>
-              {productosDesactualizados.map((p) => (
-                <li key={p.id} style={{ marginBottom: '0.35rem' }}>
-                  {p.codigo} — {p.descripcion} <span style={{ color: 'var(--rc-text-muted)' }}>({dateFmt(p.updatedAt)})</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        {loadingResumen || !resumen ? (
+          <p style={{ color: 'var(--rc-text-muted)' }}>Cargando resumen...</p>
+        ) : (
+          <>
+            <StatTile label="Productos cargados" value={String(resumen.productos)} />
+            <StatTile label="Madres cargadas" value={String(resumen.madres)} />
+            <StatTile label="Recetas cargadas" value={String(resumen.recetas)} />
+            <StatTile label="Rubros" value={String(resumen.rubros)} />
+            <StatTile label="Costo promedio por Receta" value={money.format(resumen.costoPromedioReceta)} />
+            <StatTile label="Costo promedio por Madre" value={money.format(resumen.costoPromedioMadre)} />
+            <StatTile label="Recetas con precio de venta cargado" value={`${resumen.recetasConPrecio} / ${resumen.recetas}`} />
+            {resumen.productoMasCaro && (
+              <StatTile label="Producto más caro" value={`${resumen.productoMasCaro.descripcion} · ${money.format(resumen.productoMasCaro.precio)}`} />
+            )}
+          </>
+        )}
       </div>
 
       <div className="rc-card" style={{ maxWidth: 420 }}>

@@ -2,13 +2,13 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
   { to: '/productos', label: 'Productos', icon: '🧺' },
   { to: '/madres', label: 'Madres', icon: '🍯' },
   { to: '/recetas', label: 'Recetas', icon: '🍽️' },
   { to: '/rubros', label: 'Rubros', icon: '🏷️' },
   { to: '/listas-precio', label: 'Listas de Precio', icon: '💲' },
   { to: '/historial', label: 'Historial', icon: '📜' },
+  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
 ]
 
 const ROLE_LABEL: Record<string, string> = {
