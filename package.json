@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "import-excel": "node scripts/import-excel.mjs",
-    "report-orphans": "node scripts/report-orphans.mjs"
+    "report-orphans": "node scripts/report-orphans.mjs",
+    "normalize-text": "node scripts/normalize-text.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { calcularCosteo, type ObjetivoLista, type ResultadoCosteo } from '../lib/costing'
 import { insumoKey, resolveInsumos } from '../lib/resolveInsumos'
 import { IngredientPicker } from '../components/ingredients/IngredientPicker'
+import { toSentenceCase } from '../lib/textFormat'
 
 interface Rubro {
   id: string
@@ -135,7 +136,7 @@ export function RecetaDetailPage() {
     await supabase
       .from('recetas')
       .update({
-        nombre: nombre.trim(),
+        nombre: toSentenceCase(nombre.trim()),
         venue,
         rubro_id: rubroId || null,
         rendimiento_cantidad: rendimientoCantidad ? parseFloat(rendimientoCantidad.replace(',', '.')) : null,

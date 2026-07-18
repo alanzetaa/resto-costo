@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { Modal } from '../components/ui/Modal'
+import { toSentenceCase } from '../lib/textFormat'
 
 interface Rubro {
   id: string
@@ -63,8 +64,9 @@ export function RubrosPage() {
   }
 
   async function saveDescripcion(rubroId: string, value: string) {
-    setRubros((prev) => prev.map((r) => (r.id === rubroId ? { ...r, descripcion: value } : r)))
-    await supabase.from('rubros').update({ descripcion: value }).eq('id', rubroId)
+    const descripcion = toSentenceCase(value.trim())
+    setRubros((prev) => prev.map((r) => (r.id === rubroId ? { ...r, descripcion } : r)))
+    await supabase.from('rubros').update({ descripcion }).eq('id', rubroId)
   }
 
   return (
@@ -140,7 +142,7 @@ function NuevoRubroModal({ listas, onClose, onSaved }: { listas: Lista[]; onClos
     setError(null)
     const { data: rubro, error: rubroError } = await supabase
       .from('rubros')
-      .insert({ codigo: codigo.trim(), descripcion: descripcion.trim() })
+      .insert({ codigo: codigo.trim(), descripcion: toSentenceCase(descripcion.trim()) })
       .select('id')
       .single()
     if (rubroError || !rubro) {
