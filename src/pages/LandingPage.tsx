@@ -29,7 +29,7 @@ export function LandingPage() {
         }}
       >
         <h1 style={{ fontSize: '2.4rem', maxWidth: 640, margin: 0 }}>
-          Costeo de restaurantes de alta gama, todo en un solo lugar
+          Gestión para restaurantes, todo en un mismo lugar
         </h1>
         <p style={{ maxWidth: 560, color: 'var(--rc-text-muted)', fontSize: '1.05rem' }}>
           Productos, Madres, Recetas y Listas de Precio conectados: cambiá un precio y recosteá toda tu carta al instante.
