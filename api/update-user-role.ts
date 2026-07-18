@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { admin } = await requireSuperAdmin(req.headers.authorization)
+    const { admin, callerId } = await requireSuperAdmin(req.headers.authorization)
 
     const { email, role } = req.body ?? {}
     if (typeof email !== 'string' || typeof role !== 'string') {
@@ -39,6 +39,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     await admin.from('profiles').update({ role }).eq('email', normalizedEmail)
+
+    await admin.from('audit_log').insert({
+      actor_id: callerId,
+      action: 'update_role',
+      entity_type: 'role_assignments',
+      new_value: { email: normalizedEmail, role },
+    })
 
     res.status(200).json({ ok: true })
   } catch (err) {

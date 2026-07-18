@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
+import { calcularSubtotalesBulk } from '../lib/bulkCosteo'
 
 interface Receta {
   id: string
@@ -40,27 +41,10 @@ export function RecetasPage() {
 
     const mermaPct = Number(config?.merma_pct ?? 0.05)
     const ids = (recetasData ?? []).map((p) => p.id)
-    if (ids.length) {
-      const { data: lines } = await supabase
-        .from('receta_ingredientes')
-        .select('parent_id, insumo_type, insumo_id, cantidad_usada')
-        .in('parent_id', ids)
-      const productoIds = [...new Set((lines ?? []).filter((l) => l.insumo_type === 'producto').map((l) => l.insumo_id))]
-      const { data: productos } = productoIds.length
-        ? await supabase.from('productos').select('id, precio_unitario').in('id', productoIds)
-        : { data: [] as { id: string; precio_unitario: number }[] }
-      const precioById = new Map((productos ?? []).map((p) => [p.id, Number(p.precio_unitario) || 0]))
-
-      const subtotalByReceta = new Map<string, number>()
-      for (const line of lines ?? []) {
-        if (line.insumo_type !== 'producto') continue
-        const costo = line.cantidad_usada * (precioById.get(line.insumo_id) ?? 0)
-        subtotalByReceta.set(line.parent_id, (subtotalByReceta.get(line.parent_id) ?? 0) + costo)
-      }
-      const costo = new Map<string, number>()
-      for (const [id, subtotal] of subtotalByReceta) costo.set(id, subtotal * (1 + mermaPct))
-      setCostoById(costo)
-    }
+    const subtotalByReceta = await calcularSubtotalesBulk(supabase, 'receta_ingredientes', ids)
+    const costo = new Map<string, number>()
+    for (const [id, subtotal] of subtotalByReceta) costo.set(id, subtotal * (1 + mermaPct))
+    setCostoById(costo)
     setLoading(false)
   }
 
@@ -93,6 +77,17 @@ export function RecetasPage() {
     const { data, error } = await supabase.from('recetas').insert({ nombre: 'Nueva Receta', venue: 'bar' }).select('id').single()
     setCreating(false)
     if (!error && data) navigate(`/recetas/${data.id}`)
+  }
+
+  async function handleDelete(e: MouseEvent, r: Receta) {
+    e.stopPropagation()
+    if (!window.confirm(`¿Borrar "${r.nombre}"? No se puede deshacer.`)) return
+    const { error } = await supabase.from('recetas').delete().eq('id', r.id)
+    if (error) {
+      alert('No se pudo borrar: ' + error.message)
+      return
+    }
+    await load()
   }
 
   return (
@@ -147,8 +142,11 @@ export function RecetasPage() {
                   <td style={{ textTransform: 'capitalize' }}>{p.venue}</td>
                   <td>{p.rubroNombre || '—'}</td>
                   <td>{money.format(p.costo)}</td>
-                  <td>
+                  <td style={{ display: 'flex', gap: '0.4rem' }}>
                     <span className="rc-btn rc-btn-secondary">Ver</span>
+                    <button className="rc-btn rc-btn-secondary" onClick={(e) => handleDelete(e, p)}>
+                      Borrar
+                    </button>
                   </td>
                 </tr>
               ))}

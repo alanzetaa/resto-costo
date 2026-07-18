@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
+import { calcularSubtotalesBulk } from '../lib/bulkCosteo'
 
 interface Preparacion {
   id: string
@@ -40,27 +41,10 @@ export function MadresPage() {
 
     const mermaPct = Number(config?.merma_pct ?? 0.05)
     const prepIds = (preps ?? []).map((p) => p.id)
-    if (prepIds.length) {
-      const { data: lines } = await supabase
-        .from('preparacion_ingredientes')
-        .select('parent_id, insumo_type, insumo_id, cantidad_usada')
-        .in('parent_id', prepIds)
-      const productoIds = [...new Set((lines ?? []).filter((l) => l.insumo_type === 'producto').map((l) => l.insumo_id))]
-      const { data: productos } = productoIds.length
-        ? await supabase.from('productos').select('id, precio_unitario').in('id', productoIds)
-        : { data: [] as { id: string; precio_unitario: number }[] }
-      const precioById = new Map((productos ?? []).map((p) => [p.id, Number(p.precio_unitario) || 0]))
-
-      const subtotalByPrep = new Map<string, number>()
-      for (const line of lines ?? []) {
-        if (line.insumo_type !== 'producto') continue
-        const costo = line.cantidad_usada * (precioById.get(line.insumo_id) ?? 0)
-        subtotalByPrep.set(line.parent_id, (subtotalByPrep.get(line.parent_id) ?? 0) + costo)
-      }
-      const costo = new Map<string, number>()
-      for (const [id, subtotal] of subtotalByPrep) costo.set(id, subtotal * (1 + mermaPct))
-      setCostoById(costo)
-    }
+    const subtotalByPrep = await calcularSubtotalesBulk(supabase, 'preparacion_ingredientes', prepIds)
+    const costo = new Map<string, number>()
+    for (const [id, subtotal] of subtotalByPrep) costo.set(id, subtotal * (1 + mermaPct))
+    setCostoById(costo)
     setLoading(false)
   }
 
@@ -97,6 +81,26 @@ export function MadresPage() {
       .single()
     setCreating(false)
     if (!error && data) navigate(`/madres/${data.id}`)
+  }
+
+  async function handleDelete(e: MouseEvent, p: Preparacion) {
+    e.stopPropagation()
+    const [{ count: c1 }, { count: c2 }] = await Promise.all([
+      supabase.from('preparacion_ingredientes').select('id', { count: 'exact', head: true }).eq('insumo_type', 'preparacion').eq('insumo_id', p.id),
+      supabase.from('receta_ingredientes').select('id', { count: 'exact', head: true }).eq('insumo_type', 'preparacion').eq('insumo_id', p.id),
+    ])
+    const usos = (c1 ?? 0) + (c2 ?? 0)
+    if (usos > 0) {
+      alert(`No se puede borrar "${p.nombre}": está en uso en ${usos} Madre(s)/Receta(s).`)
+      return
+    }
+    if (!window.confirm(`¿Borrar "${p.nombre}"? No se puede deshacer.`)) return
+    const { error } = await supabase.from('preparaciones').delete().eq('id', p.id)
+    if (error) {
+      alert('No se pudo borrar: ' + error.message)
+      return
+    }
+    await load()
   }
 
   return (
@@ -151,8 +155,11 @@ export function MadresPage() {
                   <td style={{ textTransform: 'capitalize' }}>{p.venue}</td>
                   <td>{p.rubroNombre || '—'}</td>
                   <td>{money.format(p.costo)}</td>
-                  <td>
+                  <td style={{ display: 'flex', gap: '0.4rem' }}>
                     <span className="rc-btn rc-btn-secondary">Ver</span>
+                    <button className="rc-btn rc-btn-secondary" onClick={(e) => handleDelete(e, p)}>
+                      Borrar
+                    </button>
                   </td>
                 </tr>
               ))}

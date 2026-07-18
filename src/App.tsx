@@ -14,6 +14,7 @@ import { RecetasPage } from './pages/RecetasPage'
 import { RecetaDetailPage } from './pages/RecetaDetailPage'
 import { RubrosPage } from './pages/RubrosPage'
 import { ListasPrecioPage } from './pages/ListasPrecioPage'
+import { HistorialPage } from './pages/HistorialPage'
 import { AccesosPage } from './pages/AccesosPage'
 import { PerfilPage } from './pages/PerfilPage'
 import { NotAuthorizedPage } from './pages/NotAuthorizedPage'
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/recetas/:id" element={<RecetaDetailPage />} />
             <Route path="/rubros" element={<RubrosPage />} />
             <Route path="/listas-precio" element={<ListasPrecioPage />} />
+            <Route path="/historial" element={<HistorialPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
 
             <Route element={<SuperAdminRoute />}>

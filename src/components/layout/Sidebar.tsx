@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/recetas', label: 'Recetas', icon: '🍽️' },
   { to: '/rubros', label: 'Rubros', icon: '🏷️' },
   { to: '/listas-precio', label: 'Listas de Precio', icon: '💲' },
+  { to: '/historial', label: 'Historial', icon: '📜' },
 ]
 
 const ROLE_LABEL: Record<string, string> = {

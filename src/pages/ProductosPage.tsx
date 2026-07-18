@@ -99,6 +99,26 @@ export function ProductosPage() {
     setForm({ ...EMPTY_FORM })
   }
 
+  async function handleDelete(p: Producto) {
+    const [{ count: c1 }, { count: c2 }, { count: c3 }] = await Promise.all([
+      supabase.from('preparacion_ingredientes').select('id', { count: 'exact', head: true }).eq('insumo_type', 'producto').eq('insumo_id', p.id),
+      supabase.from('receta_ingredientes').select('id', { count: 'exact', head: true }).eq('insumo_type', 'producto').eq('insumo_id', p.id),
+      supabase.from('preparaciones').select('id', { count: 'exact', head: true }).eq('producto_generado_id', p.id),
+    ])
+    const usos = (c1 ?? 0) + (c2 ?? 0) + (c3 ?? 0)
+    if (usos > 0) {
+      alert(`No se puede borrar "${p.descripcion}": está en uso en ${usos} Madre(s)/Receta(s).`)
+      return
+    }
+    if (!window.confirm(`¿Borrar "${p.descripcion}"? No se puede deshacer.`)) return
+    const { error } = await supabase.from('productos').delete().eq('id', p.id)
+    if (error) {
+      alert('No se pudo borrar: ' + error.message)
+      return
+    }
+    await load()
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!form) return
@@ -182,9 +202,12 @@ export function ProductosPage() {
                   <td>{p.unidad}</td>
                   <td>{p.cantidad_envase}</td>
                   <td>{money.format(p.precio_unitario)}</td>
-                  <td>
+                  <td style={{ display: 'flex', gap: '0.4rem' }}>
                     <button className="rc-btn rc-btn-secondary" onClick={() => openEdit(p)}>
                       Editar
+                    </button>
+                    <button className="rc-btn rc-btn-secondary" onClick={() => handleDelete(p)}>
+                      Borrar
                     </button>
                   </td>
                 </tr>

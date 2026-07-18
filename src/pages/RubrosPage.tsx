@@ -73,6 +73,25 @@ export function RubrosPage() {
     await supabase.from('rubros').update({ descripcion }).eq('id', rubroId)
   }
 
+  async function handleDelete(r: Rubro) {
+    const [{ count: c1 }, { count: c2 }] = await Promise.all([
+      supabase.from('preparaciones').select('id', { count: 'exact', head: true }).eq('rubro_id', r.id),
+      supabase.from('recetas').select('id', { count: 'exact', head: true }).eq('rubro_id', r.id),
+    ])
+    const usos = (c1 ?? 0) + (c2 ?? 0)
+    if (usos > 0) {
+      alert(`No se puede borrar "${r.descripcion}": lo usan ${usos} Madre(s)/Receta(s).`)
+      return
+    }
+    if (!window.confirm(`¿Borrar el rubro "${r.descripcion}"? No se puede deshacer.`)) return
+    const { error } = await supabase.from('rubros').delete().eq('id', r.id)
+    if (error) {
+      alert('No se pudo borrar: ' + error.message)
+      return
+    }
+    await load()
+  }
+
   return (
     <div>
       <div className="rc-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem', flexWrap: 'wrap' }}>
@@ -97,6 +116,7 @@ export function RubrosPage() {
                 {listas.map((l) => (
                   <th key={l.id}>{l.nombre}</th>
                 ))}
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -121,6 +141,11 @@ export function RubrosPage() {
                       />
                     </td>
                   ))}
+                  <td>
+                    <button className="rc-btn rc-btn-secondary" onClick={() => handleDelete(r)}>
+                      Borrar
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

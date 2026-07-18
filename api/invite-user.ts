@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { admin } = await requireSuperAdmin(req.headers.authorization)
+    const { admin, callerId } = await requireSuperAdmin(req.headers.authorization)
 
     const { email, role } = req.body ?? {}
     if (typeof email !== 'string' || typeof role !== 'string') {
@@ -41,6 +41,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Si la persona ya tiene cuenta, propagamos el rol de inmediato (por si el
     // trigger de la base todavía no corrió). Si no existe, no rompe nada.
     await admin.from('profiles').update({ role }).eq('email', normalizedEmail)
+
+    await admin.from('audit_log').insert({
+      actor_id: callerId,
+      action: 'grant_access',
+      entity_type: 'role_assignments',
+      new_value: { email: normalizedEmail, role },
+    })
 
     // Invitación por email opcional: si falla (ya invitado, etc.) no bloquea el alta,
     // porque el acceso real lo otorga role_assignments, no el email en sí.
