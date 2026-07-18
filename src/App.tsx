@@ -9,7 +9,9 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProductosPage } from './pages/ProductosPage'
 import { MadresPage } from './pages/MadresPage'
+import { MadreDetailPage } from './pages/MadreDetailPage'
 import { RecetasPage } from './pages/RecetasPage'
+import { RecetaDetailPage } from './pages/RecetaDetailPage'
 import { RubrosPage } from './pages/RubrosPage'
 import { ListasPrecioPage } from './pages/ListasPrecioPage'
 import { AccesosPage } from './pages/AccesosPage'
@@ -32,7 +34,9 @@ export default function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/productos" element={<ProductosPage />} />
             <Route path="/madres" element={<MadresPage />} />
+            <Route path="/madres/:id" element={<MadreDetailPage />} />
             <Route path="/recetas" element={<RecetasPage />} />
+            <Route path="/recetas/:id" element={<RecetaDetailPage />} />
             <Route path="/rubros" element={<RubrosPage />} />
             <Route path="/listas-precio" element={<ListasPrecioPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
