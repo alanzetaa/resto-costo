@@ -1,0 +1,50 @@
+import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import { ProtectedRoute, SuperAdminRoute } from './components/auth/ProtectedRoute'
+import { AppLayout } from './components/layout/AppLayout'
+import { LandingPage } from './pages/LandingPage'
+import { LoginPage } from './pages/auth/LoginPage'
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { ProductosPage } from './pages/ProductosPage'
+import { MadresPage } from './pages/MadresPage'
+import { RecetasPage } from './pages/RecetasPage'
+import { RubrosPage } from './pages/RubrosPage'
+import { ListasPrecioPage } from './pages/ListasPrecioPage'
+import { AccesosPage } from './pages/AccesosPage'
+import { PerfilPage } from './pages/PerfilPage'
+import { NotAuthorizedPage } from './pages/NotAuthorizedPage'
+import { NotFoundPage } from './pages/NotFoundPage'
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/no-autorizado" element={<NotAuthorizedPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/productos" element={<ProductosPage />} />
+            <Route path="/madres" element={<MadresPage />} />
+            <Route path="/recetas" element={<RecetasPage />} />
+            <Route path="/rubros" element={<RubrosPage />} />
+            <Route path="/listas-precio" element={<ListasPrecioPage />} />
+            <Route path="/perfil" element={<PerfilPage />} />
+
+            <Route element={<SuperAdminRoute />}>
+              <Route path="/accesos" element={<AccesosPage />} />
+            </Route>
+          </Route>
+        </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </AuthProvider>
+  )
+}
