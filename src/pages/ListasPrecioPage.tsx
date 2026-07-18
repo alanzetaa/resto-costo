@@ -149,7 +149,7 @@ export function ListasPrecioPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <select className="rc-input" style={{ maxWidth: 160 }} value={venueFilter} onChange={(e) => setVenueFilter(e.target.value as typeof venueFilter)}>
-          <option value="todos">Todos los venues</option>
+          <option value="todos">Todos los sectores</option>
           <option value="bar">Bar</option>
           <option value="resto">Resto</option>
         </select>
@@ -163,7 +163,7 @@ export function ListasPrecioPage() {
             <thead>
               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
                 <SortableTh label="Nombre" active={sortKey === 'nombre'} direction={direction} onClick={() => toggleSort('nombre')} style={{ padding: '0.5rem 0.5rem 0.5rem 0' }} />
-                <SortableTh label="Venue" active={sortKey === 'venue'} direction={direction} onClick={() => toggleSort('venue')} />
+                <SortableTh label="Sector" active={sortKey === 'venue'} direction={direction} onClick={() => toggleSort('venue')} />
                 <SortableTh label="Costo c/merma" active={sortKey === 'costoConMerma'} direction={direction} onClick={() => toggleSort('costoConMerma')} />
                 <SortableTh label="Food cost objetivo" active={sortKey === 'foodCostObjetivo'} direction={direction} onClick={() => toggleSort('foodCostObjetivo')} />
                 <SortableTh label="Precio sugerido" active={sortKey === 'precioSugerido'} direction={direction} onClick={() => toggleSort('precioSugerido')} />

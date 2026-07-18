@@ -204,7 +204,7 @@ export function MadreDetailPage() {
             <input className="rc-input" value={nombre} onChange={(e) => setNombre(e.target.value)} />
           </div>
           <div className="rc-field" style={{ width: 140 }}>
-            <label>Venue</label>
+            <label>Sector</label>
             <select className="rc-input" value={venue} onChange={(e) => setVenue(e.target.value)}>
               <option value="bar">Bar</option>
               <option value="resto">Resto</option>
