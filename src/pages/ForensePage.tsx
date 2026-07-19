@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { formatRangoFechasAR } from '../lib/dateFormat'
 
 interface Periodo {
   id: string
@@ -131,7 +132,7 @@ export function ForensePage() {
         </button>
         <h1>Análisis forense</h1>
         <p>
-          {periodo.venue} · {periodo.fecha_inicio} al {periodo.fecha_fin}
+          {periodo.venue} · {formatRangoFechasAR(periodo.fecha_inicio, periodo.fecha_fin)}
         </p>
       </div>
 

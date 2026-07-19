@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { calcularPctPorCategoria, SIN_CATEGORIA, type PeriodoResumen } from '../lib/stockAnalysis'
+import { formatRangoFechasAR } from '../lib/dateFormat'
 
 interface Periodo {
   id: string
@@ -245,7 +246,7 @@ export function StockDetailPage() {
         </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
           <h1 style={{ textTransform: 'capitalize', margin: 0 }}>
-            {periodo.tipo} · {periodo.venue} · {periodo.fecha_inicio} al {periodo.fecha_fin}
+            {periodo.tipo} · {periodo.venue} · {formatRangoFechasAR(periodo.fecha_inicio, periodo.fecha_fin)}
           </h1>
           <button className="rc-btn rc-btn-secondary" onClick={() => navigate(`/stock/${periodo.id}/forense`)}>
             Análisis forense
@@ -315,7 +316,7 @@ export function StockDetailPage() {
         ) : (
           <>
             <p style={{ marginTop: 0, color: 'var(--rc-text-muted)', fontSize: '0.85rem' }}>
-              Anterior: {periodoAnterior.fecha_inicio} al {periodoAnterior.fecha_fin}
+              Anterior: {formatRangoFechasAR(periodoAnterior.fecha_inicio, periodoAnterior.fecha_fin)}
             </p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>

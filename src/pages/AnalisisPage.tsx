@@ -8,6 +8,7 @@ import {
   type ResumenPeriodo,
   type ConsumoTeoricoResultado,
 } from '../lib/stockAnalysis'
+import { formatRangoFechasAR } from '../lib/dateFormat'
 
 interface PeriodoOpcion extends PeriodoResumen {
   tickets: number | null
@@ -155,7 +156,7 @@ export function AnalisisPage() {
     return (
       <div className="rc-card" style={{ marginBottom: '1.25rem' }}>
         <h3 style={{ marginTop: 0 }}>
-          Consumo teórico vs. real — {label} ({periodo.fecha_inicio} al {periodo.fecha_fin})
+          Consumo teórico vs. real — {label} ({formatRangoFechasAR(periodo.fecha_inicio, periodo.fecha_fin)})
         </h3>
         <p style={{ marginTop: 0, fontSize: '0.85rem', color: bajaCobertura ? 'var(--rc-danger)' : 'var(--rc-text-muted)' }}>
           {teorico.recetasConVentasCargadas} de {teorico.recetasTotales} recetas del sector tienen unidades vendidas cargadas para este período
@@ -221,7 +222,7 @@ export function AnalisisPage() {
           <select className="rc-input" style={{ maxWidth: 220 }} value={periodoAId} onChange={(e) => setPeriodoAId(e.target.value)}>
             {periodos.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.fecha_inicio} al {p.fecha_fin}
+                {formatRangoFechasAR(p.fecha_inicio, p.fecha_fin)}
               </option>
             ))}
           </select>
@@ -231,7 +232,7 @@ export function AnalisisPage() {
           <select className="rc-input" style={{ maxWidth: 220 }} value={periodoBId} onChange={(e) => setPeriodoBId(e.target.value)}>
             {periodos.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.fecha_inicio} al {p.fecha_fin}
+                {formatRangoFechasAR(p.fecha_inicio, p.fecha_fin)}
               </option>
             ))}
           </select>

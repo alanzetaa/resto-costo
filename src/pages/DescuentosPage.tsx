@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
 import { toSentenceCase } from '../lib/textFormat'
+import { formatFechaAR } from '../lib/dateFormat'
 
 interface Persona {
   id: string
@@ -299,7 +300,7 @@ export function DescuentosPage() {
               <tbody>
                 {sorted.map((d) => (
                   <tr key={d.id} style={{ borderBottom: '1px solid var(--rc-border)' }}>
-                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{d.fecha}</td>
+                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{formatFechaAR(d.fecha)}</td>
                     <td>{d.personaNombre}</td>
                     <td style={{ textTransform: 'capitalize' }}>{d.venue}</td>
                     <td>{d.cantidad_operaciones ?? '—'}</td>

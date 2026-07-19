@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
+import { formatFechaAR } from '../lib/dateFormat'
 
 interface Proveedor {
   id: string
@@ -82,6 +83,7 @@ export function ComprasPage() {
     const { data } = await supabase
       .from('productos')
       .select('id, codigo, descripcion')
+      .not('categoria', 'ilike', 'madre')
       .or(`codigo.ilike.%${q}%,descripcion.ilike.%${q}%`)
       .limit(10)
     setProductoResultados((data ?? []) as ProductoOpcion[])
@@ -362,7 +364,7 @@ export function ComprasPage() {
               <tbody>
                 {sorted.map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--rc-border)' }}>
-                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{c.fecha}</td>
+                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{formatFechaAR(c.fecha)}</td>
                     <td>{c.proveedorNombre}</td>
                     <td>{c.productoNombre}</td>
                     <td style={{ textTransform: 'capitalize' }}>{c.venue}</td>

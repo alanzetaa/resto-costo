@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { formatFechaAR } from '../lib/dateFormat'
 
 interface Periodo {
   id: string
@@ -178,8 +179,8 @@ export function StockPage() {
             <tbody>
               {periodos.map((p) => (
                 <tr key={p.id} style={{ borderBottom: '1px solid var(--rc-border)', cursor: 'pointer' }} onClick={() => navigate(`/stock/${p.id}`)}>
-                  <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{p.fecha_inicio}</td>
-                  <td>{p.fecha_fin}</td>
+                  <td style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>{formatFechaAR(p.fecha_inicio)}</td>
+                  <td>{formatFechaAR(p.fecha_fin)}</td>
                   <td>{money.format(p.venta_bruta)}</td>
                   <td>{p.cerrado ? 'Cerrado' : 'Abierto'}</td>
                   <td>
