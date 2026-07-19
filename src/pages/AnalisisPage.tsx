@@ -5,6 +5,7 @@ import {
   calcularResumenPeriodo,
   calcularConsumoTeoricoPorCategoria,
   filaComparacionEstilo,
+  CATEGORIA_MADRE,
   type PeriodoResumen,
   type ResumenPeriodo,
   type ConsumoTeoricoResultado,
@@ -152,7 +153,11 @@ export function AnalisisPage() {
 
   function renderTeorico(label: string, periodo: PeriodoOpcion | undefined, teorico: ConsumoTeoricoResultado | null, pctCat: Map<string, number>, resumen: ResumenPeriodo | null) {
     if (!periodo || !teorico || !resumen) return null
-    const categorias = new Set<string>([...teorico.porCategoria.keys(), ...pctCat.keys()])
+    // "Madre" no es una categoría de compra — es costo de recetas que ya está incluido en el
+    // total, pero no se desglosa acá porque lo que importa es el costo de la Receta completa,
+    // no el de la Madre en sí.
+    const categorias = new Set<string>([...teorico.porCategoria.keys(), ...pctCat.keys()].filter((c) => c !== CATEGORIA_MADRE))
+    const montoMadre = teorico.porCategoria.get(CATEGORIA_MADRE) ?? 0
     const bajaCobertura = teorico.recetasTotales > 0 && teorico.recetasConVentasCargadas / teorico.recetasTotales < 0.5
     return (
       <div className="rc-card" style={{ marginBottom: '1.25rem' }}>
@@ -166,31 +171,42 @@ export function AnalisisPage() {
         {teorico.recetasConVentasCargadas === 0 ? (
           <p style={{ color: 'var(--rc-text-muted)' }}>Sin datos cargados — no se puede calcular el teórico todavía.</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.87rem' }}>
-            <thead>
-              <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
-                <th style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>Categoría</th>
-                <th>Real $</th>
-                <th>Teórico $</th>
-                <th>Diferencia</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...categorias].sort((a, b) => a.localeCompare(b, 'es')).map((cat) => {
-                const realMonto = (pctCat.get(cat) ?? 0) * resumen.ventaNeta
-                const teoricoMonto = teorico.porCategoria.get(cat) ?? 0
-                const diferencia = realMonto - teoricoMonto
-                return (
-                  <tr key={cat} style={{ borderBottom: '1px solid var(--rc-border)', ...filaComparacionEstilo(diferencia) }}>
-                    <td style={{ padding: '0.35rem 0.5rem 0.35rem 0.5rem' }}>{cat}</td>
-                    <td>{money.format(realMonto)}</td>
-                    <td>{money.format(teoricoMonto)}</td>
-                    <td style={{ fontWeight: 700, color: diffColor(diferencia) }}>{money.format(diferencia)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <>
+            <p style={{ fontSize: '0.95rem' }}>
+              <strong>Costo teórico total de recetas vendidas: {money.format(teorico.totalTeorico)}</strong>
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.87rem' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
+                  <th style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}>Categoría</th>
+                  <th>Real $</th>
+                  <th>Teórico $</th>
+                  <th>Diferencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...categorias].sort((a, b) => a.localeCompare(b, 'es')).map((cat) => {
+                  const realMonto = (pctCat.get(cat) ?? 0) * resumen.ventaNeta
+                  const teoricoMonto = teorico.porCategoria.get(cat) ?? 0
+                  const diferencia = realMonto - teoricoMonto
+                  return (
+                    <tr key={cat} style={{ borderBottom: '1px solid var(--rc-border)', ...filaComparacionEstilo(diferencia) }}>
+                      <td style={{ padding: '0.35rem 0.5rem 0.35rem 0.5rem' }}>{cat}</td>
+                      <td>{money.format(realMonto)}</td>
+                      <td>{money.format(teoricoMonto)}</td>
+                      <td style={{ fontWeight: 700, color: diffColor(diferencia) }}>{money.format(diferencia)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            {montoMadre > 0 && (
+              <p style={{ marginTop: '0.5rem', marginBottom: 0, fontSize: '0.8rem', color: 'var(--rc-text-muted)' }}>
+                De ese total, {money.format(montoMadre)} corresponde a recetas que usan Madres (preparaciones internas) como ingrediente — está incluido
+                en el costo total de recetas de arriba, pero no se desglosa por categoría porque "Madre" no es una categoría de compra.
+              </p>
+            )}
+          </>
         )}
       </div>
     )

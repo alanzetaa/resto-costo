@@ -143,10 +143,18 @@ export function filaComparacionEstilo(diferencia: number | null): { background: 
     : { background: 'rgba(22, 163, 74, 0.09)', borderLeft: '3px solid var(--rc-success)' }
 }
 
+export const CATEGORIA_MADRE = 'Madre'
+
 export interface ConsumoTeoricoResultado {
   porCategoria: Map<string, number>
   recetasConVentasCargadas: number
   recetasTotales: number
+  /**
+   * Costo teórico total de las recetas vendidas (incluye lo que se consumió vía Madres,
+   * que no se desglosa por categoría porque el costo de las Madres en sí no es lo relevante
+   * — lo relevante es el costo de la Receta completa).
+   */
+  totalTeorico: number
 }
 
 /**
@@ -165,7 +173,7 @@ export async function calcularConsumoTeoricoPorCategoria(periodo: { id: string; 
   const recetaIds = [...unidadesPorReceta.keys()]
 
   if (recetaIds.length === 0) {
-    return { porCategoria: new Map(), recetasConVentasCargadas: 0, recetasTotales: recetasTotales ?? 0 }
+    return { porCategoria: new Map(), recetasConVentasCargadas: 0, recetasTotales: recetasTotales ?? 0, totalTeorico: 0 }
   }
 
   const { data: ingredientes } = await supabase
@@ -190,5 +198,6 @@ export async function calcularConsumoTeoricoPorCategoria(periodo: { id: string; 
     porCategoria.set(cat, (porCategoria.get(cat) ?? 0) + costo)
   }
 
-  return { porCategoria, recetasConVentasCargadas: recetaIds.length, recetasTotales: recetasTotales ?? 0 }
+  const totalTeorico = [...porCategoria.values()].reduce((s, v) => s + v, 0)
+  return { porCategoria, recetasConVentasCargadas: recetaIds.length, recetasTotales: recetasTotales ?? 0, totalTeorico }
 }
