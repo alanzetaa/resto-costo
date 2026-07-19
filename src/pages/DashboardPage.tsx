@@ -127,7 +127,7 @@ export function DashboardPage() {
     <div>
       <div className="rc-page-header">
         <h1>Dashboard</h1>
-        <p>Bienvenido, {profile?.email}.</p>
+        <p>Hola, {profile?.nombre || profile?.email}.</p>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
