@@ -10,7 +10,8 @@
     "lint": "tsc --noEmit",
     "import-excel": "node scripts/import-excel.mjs",
     "report-orphans": "node scripts/report-orphans.mjs",
-    "normalize-text": "node scripts/normalize-text.mjs"
+    "normalize-text": "node scripts/normalize-text.mjs",
+    "reimport-recetas": "node scripts/reimport-recetas-oficiales.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
