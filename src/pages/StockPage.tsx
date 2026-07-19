@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { formatFechaAR } from '../lib/dateFormat'
+import { DateInputAR } from '../components/ui/DateInputAR'
 
 interface Periodo {
   id: string
@@ -204,11 +205,11 @@ export function StockPage() {
             <form onSubmit={handleCrear}>
               <div className="rc-field">
                 <label>Desde</label>
-                <input className="rc-input" type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} required />
+                <DateInputAR value={fechaInicio} onChange={setFechaInicio} required />
               </div>
               <div className="rc-field">
                 <label>Hasta</label>
-                <input className="rc-input" type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} required />
+                <DateInputAR value={fechaFin} onChange={setFechaFin} required />
               </div>
               <button type="submit" className="rc-btn rc-btn-primary" style={{ width: '100%' }} disabled={creating}>
                 {creating ? 'Creando...' : 'Crear período'}

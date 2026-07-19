@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
 import { formatFechaAR } from '../lib/dateFormat'
+import { DateInputAR } from '../components/ui/DateInputAR'
 
 interface Proveedor {
   id: string
@@ -245,7 +246,7 @@ export function ComprasPage() {
             </div>
             <div className="rc-field" style={{ width: 150 }}>
               <label>Fecha</label>
-              <input className="rc-input" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+              <DateInputAR value={fecha} onChange={setFecha} required />
             </div>
             <div className="rc-field" style={{ width: 110 }}>
               <label>Cantidad</label>
@@ -335,11 +336,11 @@ export function ComprasPage() {
         </div>
         <div>
           <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--rc-text-muted)', display: 'block' }}>Desde</label>
-          <input className="rc-input" type="date" value={filtroDesde} onChange={(e) => setFiltroDesde(e.target.value)} />
+          <DateInputAR value={filtroDesde} onChange={setFiltroDesde} />
         </div>
         <div>
           <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--rc-text-muted)', display: 'block' }}>Hasta</label>
-          <input className="rc-input" type="date" value={filtroHasta} onChange={(e) => setFiltroHasta(e.target.value)} />
+          <DateInputAR value={filtroHasta} onChange={setFiltroHasta} />
         </div>
       </div>
 

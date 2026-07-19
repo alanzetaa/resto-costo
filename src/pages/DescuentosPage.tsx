@@ -4,6 +4,7 @@ import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
 import { toSentenceCase } from '../lib/textFormat'
 import { formatFechaAR } from '../lib/dateFormat'
+import { DateInputAR } from '../components/ui/DateInputAR'
 
 interface Persona {
   id: string
@@ -222,7 +223,7 @@ export function DescuentosPage() {
             </div>
             <div className="rc-field" style={{ width: 150 }}>
               <label>Fecha</label>
-              <input className="rc-input" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+              <DateInputAR value={fecha} onChange={setFecha} required />
             </div>
             <div className="rc-field" style={{ width: 130 }}>
               <label>Cant. operaciones</label>
