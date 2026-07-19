@@ -19,6 +19,7 @@ import { ComprasPage } from './pages/ComprasPage'
 import { StockPage } from './pages/StockPage'
 import { StockDetailPage } from './pages/StockDetailPage'
 import { ForensePage } from './pages/ForensePage'
+import { DescuentosPage } from './pages/DescuentosPage'
 import { HistorialPage } from './pages/HistorialPage'
 import { AccesosPage } from './pages/AccesosPage'
 import { PerfilPage } from './pages/PerfilPage'
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/stock" element={<StockPage />} />
             <Route path="/stock/:id" element={<StockDetailPage />} />
             <Route path="/stock/:id/forense" element={<ForensePage />} />
+            <Route path="/descuentos" element={<DescuentosPage />} />
             <Route path="/historial" element={<HistorialPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
 

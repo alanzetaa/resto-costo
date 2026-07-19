@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/proveedores', label: 'Proveedores', icon: '🚚' },
   { to: '/compras', label: 'Compras', icon: '🧾' },
   { to: '/stock', label: 'Stock', icon: '📦' },
+  { to: '/descuentos', label: 'Descuentos', icon: '🎟️' },
   { to: '/historial', label: 'Historial', icon: '📜' },
   { to: '/dashboard', label: 'Dashboard', icon: '📊' },
 ]
