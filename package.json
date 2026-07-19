@@ -11,7 +11,8 @@
     "import-excel": "node scripts/import-excel.mjs",
     "report-orphans": "node scripts/report-orphans.mjs",
     "normalize-text": "node scripts/normalize-text.mjs",
-    "reimport-recetas": "node scripts/reimport-recetas-oficiales.mjs"
+    "reimport-recetas": "node scripts/reimport-recetas-oficiales.mjs",
+    "normalize-unidades": "node scripts/normalize-unidades.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

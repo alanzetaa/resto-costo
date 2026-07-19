@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import { Modal as ModalShell } from '../components/ui/Modal'
-import { toSentenceCase } from '../lib/textFormat'
+import { toSentenceCase, normalizeUnidad } from '../lib/textFormat'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
 
@@ -131,7 +131,7 @@ export function ProductosPage() {
       proveedor: form.proveedor.trim() ? toSentenceCase(form.proveedor.trim()) : null,
       precio_compra: parseFloat(form.precio_compra.replace(',', '.')) || 0,
       descuento_pct: parseFloat(form.descuento_pct.replace(',', '.')) || 0,
-      unidad: form.unidad.trim(),
+      unidad: normalizeUnidad(form.unidad),
       cantidad_envase: parseFloat(form.cantidad_envase.replace(',', '.')) || 1,
       categoria: form.categoria.trim() ? toSentenceCase(form.categoria.trim()) : null,
       updated_by: profile?.id,

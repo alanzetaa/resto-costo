@@ -8,3 +8,20 @@ export function toSentenceCase(value: string | null): string | null {
   const lower = trimmed.toLowerCase()
   return lower.charAt(0).toUpperCase() + lower.slice(1)
 }
+
+const UNIDAD_SINONIMOS: Record<string, string> = {
+  GR: 'GR',
+  GRS: 'GR',
+  UN: 'UN',
+  'UNI.': 'UN',
+  UNI: 'UN',
+  'UN.': 'UN',
+  ML: 'ML',
+}
+
+/** "gr" | "GRS" | "uni." -> "GR" / "UN" (mayúsculas, sinónimos unificados) */
+export function normalizeUnidad(value: string): string {
+  const upper = value.trim().toUpperCase()
+  if (!upper) return upper
+  return UNIDAD_SINONIMOS[upper] ?? upper
+}
