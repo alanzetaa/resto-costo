@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/descuentos', label: 'Descuentos', icon: '🎟️' },
   { to: '/historial', label: 'Historial', icon: '📜' },
   { to: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { to: '/analisis', label: 'Análisis', icon: '📈' },
 ]
 
 const ROLE_LABEL: Record<string, string> = {

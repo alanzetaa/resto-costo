@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { calcularPctPorCategoria, SIN_CATEGORIA, type PeriodoResumen } from '../lib/stockAnalysis'
 
 interface Periodo {
   id: string
@@ -45,64 +46,9 @@ interface FilaCalculada {
   valorizado: number | null
 }
 
-interface PeriodoResumen {
-  id: string
-  venue: string
-  fecha_inicio: string
-  fecha_fin: string
-  venta_bruta: number
-  anulaciones: number
-}
-
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`
 const pctPuntos = (n: number) => `${n >= 0 ? '+' : ''}${(n * 100).toFixed(2)} pp`
-const SIN_CATEGORIA = 'Sin categoría'
-
-/** % de consumo por categoría (consumo $ / venta neta) para un período dado — se usa
- * tanto para el período actual como para el anterior, en la comparación semana/mes contra anterior. */
-async function calcularPctPorCategoria(periodo: PeriodoResumen, ivaPct: number): Promise<Map<string, number>> {
-  const { data: conteos } = await supabase
-    .from('stock_conteos')
-    .select('producto_id, cantidad_inicial, cantidad_final')
-    .eq('periodo_id', periodo.id)
-
-  const productoIds = (conteos ?? []).map((c) => c.producto_id)
-  const { data: productos } = productoIds.length
-    ? await supabase.from('productos').select('id, categoria, precio_unitario').in('id', productoIds)
-    : { data: [] as { id: string; categoria: string | null; precio_unitario: number }[] }
-  const productoById = new Map((productos ?? []).map((p) => [p.id, p]))
-
-  const { data: compras } = await supabase
-    .from('compras')
-    .select('producto_id, cantidad')
-    .eq('venue', periodo.venue)
-    .gte('fecha', periodo.fecha_inicio)
-    .lte('fecha', periodo.fecha_fin)
-    .not('producto_id', 'is', null)
-  const compradoPorProducto = new Map<string, number>()
-  for (const c of compras ?? []) {
-    compradoPorProducto.set(c.producto_id as string, (compradoPorProducto.get(c.producto_id as string) ?? 0) + (c.cantidad ?? 0))
-  }
-
-  const consumoPorCategoria = new Map<string, number>()
-  for (const c of conteos ?? []) {
-    if (c.cantidad_final === null) continue
-    const producto = productoById.get(c.producto_id)
-    if (!producto) continue
-    const disponible = c.cantidad_inicial + (compradoPorProducto.get(c.producto_id) ?? 0)
-    const consumoMonto = (disponible - c.cantidad_final) * producto.precio_unitario
-    const cat = producto.categoria || SIN_CATEGORIA
-    consumoPorCategoria.set(cat, (consumoPorCategoria.get(cat) ?? 0) + consumoMonto)
-  }
-
-  const ventaNeta = (periodo.venta_bruta - periodo.anulaciones) / (1 + ivaPct)
-  const pctPorCategoria = new Map<string, number>()
-  if (ventaNeta > 0) {
-    for (const [cat, monto] of consumoPorCategoria) pctPorCategoria.set(cat, monto / ventaNeta)
-  }
-  return pctPorCategoria
-}
 
 export function StockDetailPage() {
   const { id } = useParams<{ id: string }>()

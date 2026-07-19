@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import { calcularSubtotalesBulk } from '../lib/bulkCosteo'
@@ -128,6 +129,18 @@ export function DashboardPage() {
       <div className="rc-page-header">
         <h1>Dashboard</h1>
         <p>Hola, {profile?.nombre || profile?.email}.</p>
+      </div>
+
+      <div className="rc-card" style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h3 style={{ margin: '0 0 0.25rem' }}>Análisis comparativo</h3>
+          <p style={{ margin: 0, color: 'var(--rc-text-muted)', fontSize: '0.9rem' }}>
+            Semana vs. semana, mes vs. mes — ventas, compras, consumo real y teórico, todo cruzado.
+          </p>
+        </div>
+        <Link to="/analisis" className="rc-btn rc-btn-primary">
+          Ver análisis comparativo →
+        </Link>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
