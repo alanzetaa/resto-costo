@@ -129,6 +129,20 @@ export async function calcularResumenPeriodo(periodo: PeriodoResumen, ivaPct: nu
   }
 }
 
+/**
+ * Estilo de fila para las tablas de comparación por categoría (Stock y Análisis):
+ * colorea toda la fila, no solo la celda de diferencia, para que se lea de un vistazo
+ * — igual que el resaltado verde/naranja del Excel original. Diferencia positiva
+ * significa que el % de consumo subió respecto al período comparado (peor); negativa,
+ * que bajó (mejor).
+ */
+export function filaComparacionEstilo(diferencia: number | null): { background: string; borderLeft: string } | undefined {
+  if (diferencia === null || diferencia === 0) return undefined
+  return diferencia > 0
+    ? { background: 'rgba(220, 38, 38, 0.09)', borderLeft: '3px solid var(--rc-danger)' }
+    : { background: 'rgba(22, 163, 74, 0.09)', borderLeft: '3px solid var(--rc-success)' }
+}
+
 export interface ConsumoTeoricoResultado {
   porCategoria: Map<string, number>
   recetasConVentasCargadas: number

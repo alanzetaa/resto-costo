@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import { calcularPctPorCategoria, SIN_CATEGORIA, type PeriodoResumen } from '../lib/stockAnalysis'
+import { calcularPctPorCategoria, filaComparacionEstilo, SIN_CATEGORIA, type PeriodoResumen } from '../lib/stockAnalysis'
 import { formatRangoFechasAR } from '../lib/dateFormat'
 
 interface Periodo {
@@ -318,6 +318,10 @@ export function StockDetailPage() {
             <p style={{ marginTop: 0, color: 'var(--rc-text-muted)', fontSize: '0.85rem' }}>
               Anterior: {formatRangoFechasAR(periodoAnterior.fecha_inicio, periodoAnterior.fecha_fin)}
             </p>
+            <p style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '0.85rem', display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--rc-danger)', fontWeight: 600 }}>■ Rojo: subió el % de consumo (revisar)</span>
+              <span style={{ color: 'var(--rc-success)', fontWeight: 600 }}>■ Verde: bajó el % de consumo (mejoró)</span>
+            </p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
@@ -329,8 +333,8 @@ export function StockDetailPage() {
               </thead>
               <tbody>
                 {comparacion.map((c) => (
-                  <tr key={c.categoria} style={{ borderBottom: '1px solid var(--rc-border)' }}>
-                    <td style={{ padding: '0.35rem 0.5rem 0.35rem 0' }}>{c.categoria}</td>
+                  <tr key={c.categoria} style={{ borderBottom: '1px solid var(--rc-border)', ...filaComparacionEstilo(c.diferencia) }}>
+                    <td style={{ padding: '0.35rem 0.5rem 0.35rem 0.5rem' }}>{c.categoria}</td>
                     <td>{c.actual !== null ? pct(c.actual) : '—'}</td>
                     <td>{c.anterior !== null ? pct(c.anterior) : '—'}</td>
                     <td

@@ -4,6 +4,7 @@ import {
   calcularPctPorCategoria,
   calcularResumenPeriodo,
   calcularConsumoTeoricoPorCategoria,
+  filaComparacionEstilo,
   type PeriodoResumen,
   type ResumenPeriodo,
   type ConsumoTeoricoResultado,
@@ -180,8 +181,8 @@ export function AnalisisPage() {
                 const teoricoMonto = teorico.porCategoria.get(cat) ?? 0
                 const diferencia = realMonto - teoricoMonto
                 return (
-                  <tr key={cat} style={{ borderBottom: '1px solid var(--rc-border)' }}>
-                    <td style={{ padding: '0.35rem 0.5rem 0.35rem 0' }}>{cat}</td>
+                  <tr key={cat} style={{ borderBottom: '1px solid var(--rc-border)', ...filaComparacionEstilo(diferencia) }}>
+                    <td style={{ padding: '0.35rem 0.5rem 0.35rem 0.5rem' }}>{cat}</td>
                     <td>{money.format(realMonto)}</td>
                     <td>{money.format(teoricoMonto)}</td>
                     <td style={{ fontWeight: 700, color: diffColor(diferencia) }}>{money.format(diferencia)}</td>
@@ -253,8 +254,8 @@ export function AnalisisPage() {
               <thead>
                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
                   <th style={{ padding: '0.4rem 0.5rem 0.4rem 0' }}></th>
-                  <th>A ({periodoA?.fecha_inicio} al {periodoA?.fecha_fin})</th>
-                  <th>B ({periodoB?.fecha_inicio} al {periodoB?.fecha_fin})</th>
+                  <th>A ({periodoA ? formatRangoFechasAR(periodoA.fecha_inicio, periodoA.fecha_fin) : '—'})</th>
+                  <th>B ({periodoB ? formatRangoFechasAR(periodoB.fecha_inicio, periodoB.fecha_fin) : '—'})</th>
                   <th>Diferencia (B − A)</th>
                 </tr>
               </thead>
@@ -333,6 +334,10 @@ export function AnalisisPage() {
 
           <div className="rc-card" style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
             <h3 style={{ marginTop: 0 }}>% consumo por categoría, A vs. B</h3>
+            <p style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '0.85rem', display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--rc-danger)', fontWeight: 600 }}>■ Rojo: subió el % de consumo de A a B (revisar)</span>
+              <span style={{ color: 'var(--rc-success)', fontWeight: 600 }}>■ Verde: bajó el % de consumo de A a B (mejoró)</span>
+            </p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--rc-border)' }}>
@@ -348,8 +353,8 @@ export function AnalisisPage() {
                   const b = pctCatB.get(cat) ?? null
                   const diferencia = a !== null && b !== null ? b - a : null
                   return (
-                    <tr key={cat} style={{ borderBottom: '1px solid var(--rc-border)' }}>
-                      <td style={{ padding: '0.35rem 0.5rem 0.35rem 0' }}>{cat}</td>
+                    <tr key={cat} style={{ borderBottom: '1px solid var(--rc-border)', ...filaComparacionEstilo(diferencia) }}>
+                      <td style={{ padding: '0.35rem 0.5rem 0.35rem 0.5rem' }}>{cat}</td>
                       <td>{a !== null ? pct(a) : '—'}</td>
                       <td>{b !== null ? pct(b) : '—'}</td>
                       <td style={{ fontWeight: 700, color: diffColor(diferencia) }}>{diferencia !== null ? pctPuntos(diferencia) : '—'}</td>
