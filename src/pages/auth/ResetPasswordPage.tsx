@@ -30,7 +30,7 @@ export function ResetPasswordPage() {
       setError('No pudimos actualizar tu contraseña. El link puede haber expirado.')
       return
     }
-    navigate('/dashboard', { replace: true })
+    navigate('/productos', { replace: true })
   }
 
   return (

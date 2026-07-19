@@ -15,7 +15,7 @@ export function SuperAdminRoute() {
   const { loading, isSuperAdmin } = useAuth()
 
   if (loading) return <FullscreenLoader />
-  if (!isSuperAdmin) return <Navigate to="/dashboard" replace />
+  if (!isSuperAdmin) return <Navigate to="/productos" replace />
 
   return <Outlet />
 }

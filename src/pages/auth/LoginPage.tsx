@@ -12,7 +12,7 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
 
   if (!loading && session) {
-    const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
+    const from = (location.state as { from?: string } | null)?.from ?? '/productos'
     return <Navigate to={from} replace />
   }
 
@@ -31,7 +31,7 @@ export function LoginPage() {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/productos` },
     })
     if (error) setError('No se pudo iniciar sesión con Google.')
   }
