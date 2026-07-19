@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 import { formatRangoFechasAR } from '../lib/dateFormat'
 
 interface Periodo {
@@ -29,6 +30,7 @@ interface RecetaUso {
 export function ForensePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { profile } = useAuth()
 
   const [periodo, setPeriodo] = useState<Periodo | null>(null)
   const [query, setQuery] = useState('')
@@ -116,7 +118,10 @@ export function ForensePage() {
     setUsos((prev) => prev.map((u) => (u.recetaId === uso.recetaId ? { ...u, unidadesVendidas: num } : u)))
     await supabase
       .from('receta_ventas_periodo')
-      .upsert({ periodo_id: id, receta_id: uso.recetaId, unidades_vendidas: num }, { onConflict: 'periodo_id,receta_id' })
+      .upsert(
+        { periodo_id: id, receta_id: uso.recetaId, unidades_vendidas: num, updated_by: profile?.id ?? null, updated_at: new Date().toISOString() },
+        { onConflict: 'periodo_id,receta_id' },
+      )
   }
 
   const consumoTeorico = usos.reduce((s, u) => s + u.cantidadUsada * u.unidadesVendidas, 0)

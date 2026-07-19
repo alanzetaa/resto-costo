@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
 import { toSentenceCase } from '../lib/textFormat'
 import { formatFechaAR } from '../lib/dateFormat'
 import { DateInputAR } from '../components/ui/DateInputAR'
+import { nombreUsuario, type UsuarioBasico } from '../lib/userDisplay'
 
 interface Persona {
   id: string
@@ -21,10 +23,12 @@ interface Descuento {
   cantidad_operaciones: number | null
   monto: number
   nota: string | null
+  profiles: UsuarioBasico | null
 }
 
 interface DescuentoRow extends Descuento {
   personaNombre: string
+  cargadoPor: string
 }
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
@@ -32,6 +36,7 @@ const pct = (n: number) => `${(n * 100).toFixed(0)}%`
 const todayISO = () => new Date().toISOString().slice(0, 10)
 
 export function DescuentosPage() {
+  const { profile } = useAuth()
   const [personas, setPersonas] = useState<Persona[]>([])
   const [descuentos, setDescuentos] = useState<Descuento[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,12 +66,12 @@ export function DescuentosPage() {
       supabase.from('personas_descuento').select('id, nombre, porcentaje, activo').order('nombre'),
       supabase
         .from('descuentos')
-        .select('id, persona_id, venue, fecha, cantidad_operaciones, monto, nota')
+        .select('id, persona_id, venue, fecha, cantidad_operaciones, monto, nota, profiles(nombre, apellido, email)')
         .order('fecha', { ascending: false })
         .limit(500),
     ])
     setPersonas((personasData ?? []) as Persona[])
-    setDescuentos((descuentosData ?? []) as Descuento[])
+    setDescuentos((descuentosData ?? []) as unknown as Descuento[])
     setLoading(false)
   }
 
@@ -114,6 +119,7 @@ export function DescuentosPage() {
       cantidad_operaciones: cantidadOp ? parseInt(cantidadOp, 10) : null,
       monto: montoNum,
       nota: nota.trim() || null,
+      created_by: profile?.id ?? null,
     })
     setSaving(false)
     if (error) {
@@ -132,7 +138,7 @@ export function DescuentosPage() {
     return descuentos
       .filter((d) => !filtroPersona || d.persona_id === filtroPersona)
       .filter((d) => filtroVenue === 'todos' || d.venue === filtroVenue)
-      .map((d) => ({ ...d, personaNombre: personaNombreById.get(d.persona_id) ?? '—' }))
+      .map((d) => ({ ...d, personaNombre: personaNombreById.get(d.persona_id) ?? '—', cargadoPor: nombreUsuario(d.profiles) }))
   }, [descuentos, filtroPersona, filtroVenue, personaNombreById])
 
   const { sorted, sortKey, direction, toggleSort } = useSortableTable<DescuentoRow>(filtered, 'fecha')
@@ -296,6 +302,7 @@ export function DescuentosPage() {
                   <SortableTh label="Cant. op." active={sortKey === 'cantidad_operaciones'} direction={direction} onClick={() => toggleSort('cantidad_operaciones')} />
                   <SortableTh label="Monto" active={sortKey === 'monto'} direction={direction} onClick={() => toggleSort('monto')} />
                   <th>Nota</th>
+                  <SortableTh label="Cargado por" active={sortKey === 'cargadoPor'} direction={direction} onClick={() => toggleSort('cargadoPor')} />
                 </tr>
               </thead>
               <tbody>
@@ -307,6 +314,7 @@ export function DescuentosPage() {
                     <td>{d.cantidad_operaciones ?? '—'}</td>
                     <td>{money.format(d.monto)}</td>
                     <td>{d.nota ?? '—'}</td>
+                    <td>{d.cargadoPor}</td>
                   </tr>
                 ))}
               </tbody>

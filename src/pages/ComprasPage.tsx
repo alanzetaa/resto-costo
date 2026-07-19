@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 import { useSortableTable } from '../lib/useSortableTable'
 import { SortableTh } from '../components/ui/SortableTh'
 import { formatFechaAR } from '../lib/dateFormat'
 import { DateInputAR } from '../components/ui/DateInputAR'
+import { nombreUsuario, type UsuarioBasico } from '../lib/userDisplay'
 
 interface Proveedor {
   id: string
@@ -25,18 +27,21 @@ interface Compra {
   cantidad: number | null
   monto: number
   nota: string | null
+  profiles: UsuarioBasico | null
 }
 
 interface CompraRow extends Compra {
   proveedorNombre: string
   productoNombre: string
   precioUnitario: number | null
+  cargadoPor: string
 }
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 const todayISO = () => new Date().toISOString().slice(0, 10)
 
 export function ComprasPage() {
+  const { profile } = useAuth()
   const [proveedores, setProveedores] = useState<Proveedor[]>([])
   const [compras, setCompras] = useState<Compra[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,10 +69,14 @@ export function ComprasPage() {
     setLoading(true)
     const [{ data: prov }, { data: comprasData }] = await Promise.all([
       supabase.from('proveedores').select('id, nombre').order('nombre'),
-      supabase.from('compras').select('id, proveedor_id, producto_id, venue, fecha, cantidad, monto, nota').order('fecha', { ascending: false }).limit(500),
+      supabase
+        .from('compras')
+        .select('id, proveedor_id, producto_id, venue, fecha, cantidad, monto, nota, profiles(nombre, apellido, email)')
+        .order('fecha', { ascending: false })
+        .limit(500),
     ])
     setProveedores((prov ?? []) as Proveedor[])
-    setCompras((comprasData ?? []) as Compra[])
+    setCompras((comprasData ?? []) as unknown as Compra[])
     setLoading(false)
   }
 
@@ -108,6 +117,7 @@ export function ComprasPage() {
       cantidad: cantidad ? parseFloat(cantidad.replace(',', '.')) : null,
       monto: montoNum,
       nota: nota.trim() || null,
+      created_by: profile?.id ?? null,
     })
     setSaving(false)
     if (error) {
@@ -146,6 +156,7 @@ export function ComprasPage() {
         proveedorNombre: proveedorNombreById.get(c.proveedor_id) ?? '—',
         productoNombre: c.producto_id ? productoNombreById.get(c.producto_id) ?? '…' : '—',
         precioUnitario: c.cantidad ? c.monto / c.cantidad : null,
+        cargadoPor: nombreUsuario(c.profiles),
       }))
   }, [compras, filtroProveedor, filtroVenue, filtroDesde, filtroHasta, proveedorNombreById, productoNombreById])
 
@@ -363,6 +374,7 @@ export function ComprasPage() {
                   <SortableTh label="Precio unitario" active={sortKey === 'precioUnitario'} direction={direction} onClick={() => toggleSort('precioUnitario')} />
                   <SortableTh label="Precio total" active={sortKey === 'monto'} direction={direction} onClick={() => toggleSort('monto')} />
                   <th>Nota</th>
+                  <SortableTh label="Cargado por" active={sortKey === 'cargadoPor'} direction={direction} onClick={() => toggleSort('cargadoPor')} />
                 </tr>
               </thead>
               <tbody>
@@ -376,6 +388,7 @@ export function ComprasPage() {
                     <td>{c.precioUnitario !== null ? money.format(c.precioUnitario) : '—'}</td>
                     <td>{money.format(c.monto)}</td>
                     <td>{c.nota ?? '—'}</td>
+                    <td>{c.cargadoPor}</td>
                   </tr>
                 ))}
               </tbody>

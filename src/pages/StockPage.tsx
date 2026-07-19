@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 import { formatFechaAR } from '../lib/dateFormat'
 import { DateInputAR } from '../components/ui/DateInputAR'
 
@@ -30,6 +31,7 @@ function toISO(d: Date) {
 
 export function StockPage() {
   const navigate = useNavigate()
+  const { profile } = useAuth()
   const [venue, setVenue] = useState<'bar' | 'resto'>('bar')
   const [tipo, setTipo] = useState<'semanal' | 'mensual'>('semanal')
   const [periodos, setPeriodos] = useState<Periodo[]>([])
@@ -91,7 +93,7 @@ export function StockPage() {
 
     const { data: nuevoPeriodo, error: periodoError } = await supabase
       .from('periodos_valorizacion')
-      .insert({ venue, tipo, fecha_inicio: fechaInicio, fecha_fin: fechaFin })
+      .insert({ venue, tipo, fecha_inicio: fechaInicio, fecha_fin: fechaFin, created_by: profile?.id ?? null })
       .select('id')
       .single()
 

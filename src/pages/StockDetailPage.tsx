@@ -1,8 +1,10 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 import { calcularPctPorCategoria, filaComparacionEstilo, SIN_CATEGORIA, type PeriodoResumen } from '../lib/stockAnalysis'
 import { formatRangoFechasAR } from '../lib/dateFormat'
+import { nombreUsuario, type UsuarioBasico } from '../lib/userDisplay'
 
 interface Periodo {
   id: string
@@ -15,6 +17,9 @@ interface Periodo {
   tickets: number | null
   cubiertos: number | null
   cerrado: boolean
+  created_by: string | null
+  updated_by: string | null
+  updated_at: string | null
 }
 
 interface Producto {
@@ -32,6 +37,7 @@ interface Conteo {
   producto_id: string
   cantidad_inicial: number
   cantidad_final: number | null
+  profiles: UsuarioBasico | null
 }
 
 interface FilaCalculada {
@@ -45,6 +51,7 @@ interface FilaCalculada {
   consumo: number | null
   consumoMonto: number | null
   valorizado: number | null
+  cargadoPor: string
 }
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
@@ -54,6 +61,7 @@ const pctPuntos = (n: number) => `${n >= 0 ? '+' : ''}${(n * 100).toFixed(2)} pp
 export function StockDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { profile } = useAuth()
 
   const [periodo, setPeriodo] = useState<Periodo | null>(null)
   const [filas, setFilas] = useState<FilaCalculada[]>([])
@@ -62,6 +70,7 @@ export function StockDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [periodoAnterior, setPeriodoAnterior] = useState<PeriodoResumen | null>(null)
   const [pctAnteriorPorCategoria, setPctAnteriorPorCategoria] = useState<Map<string, number>>(new Map())
+  const [cargadoPorPeriodo, setCargadoPorPeriodo] = useState<string>('—')
 
   async function load() {
     if (!id) return
@@ -80,9 +89,17 @@ export function StockDetailPage() {
     setPeriodo(periodoData as Periodo)
     setIvaPct(Number(config?.iva_pct ?? 0.21))
 
+    const quienCargoPeriodo = periodoData.updated_by ?? periodoData.created_by
+    if (quienCargoPeriodo) {
+      const { data: usuarioPeriodo } = await supabase.from('profiles').select('nombre, apellido, email').eq('id', quienCargoPeriodo).maybeSingle()
+      setCargadoPorPeriodo(nombreUsuario(usuarioPeriodo as UsuarioBasico | null))
+    } else {
+      setCargadoPorPeriodo('—')
+    }
+
     const { data: conteos } = await supabase
       .from('stock_conteos')
-      .select('id, producto_id, cantidad_inicial, cantidad_final')
+      .select('id, producto_id, cantidad_inicial, cantidad_final, profiles(nombre, apellido, email)')
       .eq('periodo_id', id)
 
     const productoIds = (conteos ?? []).map((c) => c.producto_id)
@@ -126,6 +143,7 @@ export function StockDetailPage() {
           consumo,
           consumoMonto: consumo !== null ? consumo * producto.precio_unitario : null,
           valorizado: c.cantidad_final !== null ? c.cantidad_final * producto.precio_unitario : null,
+          cargadoPor: nombreUsuario(c.profiles),
         }
       })
       .filter((f): f is FilaCalculada => f !== null)
@@ -201,7 +219,11 @@ export function StockDetailPage() {
     if (!periodo) return
     const num = value.trim() === '' ? null : parseFloat(value.replace(',', '.'))
     setPeriodo({ ...periodo, [field]: num ?? 0 } as Periodo)
-    await supabase.from('periodos_valorizacion').update({ [field]: num }).eq('id', periodo.id)
+    setCargadoPorPeriodo(nombreUsuario(profile))
+    await supabase
+      .from('periodos_valorizacion')
+      .update({ [field]: num, updated_by: profile?.id ?? null, updated_at: new Date().toISOString() })
+      .eq('id', periodo.id)
   }
 
   async function handleUpdateConteo(conteoId: string, field: 'cantidad_inicial' | 'cantidad_final', value: string) {
@@ -222,10 +244,14 @@ export function StockDetailPage() {
           consumo,
           consumoMonto: consumo !== null ? consumo * f.producto.precio_unitario : null,
           valorizado: cantidadFinal !== null ? cantidadFinal * f.producto.precio_unitario : null,
+          cargadoPor: nombreUsuario(profile),
         }
       }),
     )
-    await supabase.from('stock_conteos').update({ [field]: num }).eq('id', conteoId)
+    await supabase
+      .from('stock_conteos')
+      .update({ [field]: num, updated_by: profile?.id ?? null, updated_at: new Date().toISOString() })
+      .eq('id', conteoId)
   }
 
   async function handleToggleCerrado() {
@@ -277,6 +303,7 @@ export function StockDetailPage() {
             {periodo.cerrado ? 'Reabrir período' : 'Cerrar período'}
           </button>
         </div>
+        <p style={{ marginTop: '0.75rem', marginBottom: 0, fontSize: '0.8rem', color: 'var(--rc-text-muted)' }}>Cargado por: {cargadoPorPeriodo}</p>
       </div>
 
       <div className="rc-card" style={{ marginBottom: '1.25rem' }}>
@@ -368,6 +395,7 @@ export function StockDetailPage() {
               <th>Precio unit.</th>
               <th>Consumo $</th>
               <th>Valorizado $</th>
+              <th>Cargado por</th>
             </tr>
           </thead>
           <tbody>
@@ -377,7 +405,7 @@ export function StockDetailPage() {
               return (
                 <Fragment key={categoria}>
                   <tr style={{ background: 'var(--rc-bg)' }}>
-                    <td colSpan={11} style={{ padding: '0.4rem 0.5rem', fontWeight: 700 }}>
+                    <td colSpan={12} style={{ padding: '0.4rem 0.5rem', fontWeight: 700 }}>
                       {categoria}
                     </td>
                   </tr>
@@ -410,6 +438,7 @@ export function StockDetailPage() {
                       <td>{money.format(f.producto.precio_unitario)}</td>
                       <td>{f.consumoMonto !== null ? money.format(f.consumoMonto) : '—'}</td>
                       <td>{f.valorizado !== null ? money.format(f.valorizado) : '—'}</td>
+                      <td style={{ fontSize: '0.78rem', color: 'var(--rc-text-muted)' }}>{f.cargadoPor}</td>
                     </tr>
                   ))}
                   <tr style={{ borderBottom: '2px solid var(--rc-border)', fontWeight: 700 }}>
@@ -418,6 +447,7 @@ export function StockDetailPage() {
                     </td>
                     <td>{money.format(subConsumo)}</td>
                     <td>{money.format(subValorizado)}</td>
+                    <td></td>
                   </tr>
                 </Fragment>
               )
