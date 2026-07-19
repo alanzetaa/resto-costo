@@ -29,6 +29,7 @@ interface Compra {
 interface CompraRow extends Compra {
   proveedorNombre: string
   productoNombre: string
+  precioUnitario: number | null
 }
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
@@ -143,6 +144,7 @@ export function ComprasPage() {
         ...c,
         proveedorNombre: proveedorNombreById.get(c.proveedor_id) ?? '—',
         productoNombre: c.producto_id ? productoNombreById.get(c.producto_id) ?? '…' : '—',
+        precioUnitario: c.cantidad ? c.monto / c.cantidad : null,
       }))
   }, [compras, filtroProveedor, filtroVenue, filtroDesde, filtroHasta, proveedorNombreById, productoNombreById])
 
@@ -357,7 +359,8 @@ export function ComprasPage() {
                   <SortableTh label="Producto" active={sortKey === 'productoNombre'} direction={direction} onClick={() => toggleSort('productoNombre')} />
                   <SortableTh label="Sector" active={sortKey === 'venue'} direction={direction} onClick={() => toggleSort('venue')} />
                   <SortableTh label="Cantidad" active={sortKey === 'cantidad'} direction={direction} onClick={() => toggleSort('cantidad')} />
-                  <SortableTh label="Monto" active={sortKey === 'monto'} direction={direction} onClick={() => toggleSort('monto')} />
+                  <SortableTh label="Precio unitario" active={sortKey === 'precioUnitario'} direction={direction} onClick={() => toggleSort('precioUnitario')} />
+                  <SortableTh label="Precio total" active={sortKey === 'monto'} direction={direction} onClick={() => toggleSort('monto')} />
                   <th>Nota</th>
                 </tr>
               </thead>
@@ -369,6 +372,7 @@ export function ComprasPage() {
                     <td>{c.productoNombre}</td>
                     <td style={{ textTransform: 'capitalize' }}>{c.venue}</td>
                     <td>{c.cantidad ?? '—'}</td>
+                    <td>{c.precioUnitario !== null ? money.format(c.precioUnitario) : '—'}</td>
                     <td>{money.format(c.monto)}</td>
                     <td>{c.nota ?? '—'}</td>
                   </tr>
