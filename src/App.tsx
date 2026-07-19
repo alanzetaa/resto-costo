@@ -14,6 +14,11 @@ import { RecetasPage } from './pages/RecetasPage'
 import { RecetaDetailPage } from './pages/RecetaDetailPage'
 import { RubrosPage } from './pages/RubrosPage'
 import { ListasPrecioPage } from './pages/ListasPrecioPage'
+import { ProveedoresPage } from './pages/ProveedoresPage'
+import { ComprasPage } from './pages/ComprasPage'
+import { StockPage } from './pages/StockPage'
+import { StockDetailPage } from './pages/StockDetailPage'
+import { ForensePage } from './pages/ForensePage'
 import { HistorialPage } from './pages/HistorialPage'
 import { AccesosPage } from './pages/AccesosPage'
 import { PerfilPage } from './pages/PerfilPage'
@@ -40,6 +45,11 @@ export default function App() {
             <Route path="/recetas/:id" element={<RecetaDetailPage />} />
             <Route path="/rubros" element={<RubrosPage />} />
             <Route path="/listas-precio" element={<ListasPrecioPage />} />
+            <Route path="/proveedores" element={<ProveedoresPage />} />
+            <Route path="/compras" element={<ComprasPage />} />
+            <Route path="/stock" element={<StockPage />} />
+            <Route path="/stock/:id" element={<StockDetailPage />} />
+            <Route path="/stock/:id/forense" element={<ForensePage />} />
             <Route path="/historial" element={<HistorialPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
 
