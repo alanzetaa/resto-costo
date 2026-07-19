@@ -13,7 +13,8 @@
     "normalize-text": "node scripts/normalize-text.mjs",
     "reimport-recetas": "node scripts/reimport-recetas-oficiales.mjs",
     "normalize-unidades": "node scripts/normalize-unidades.mjs",
-    "seed-limpieza": "node scripts/seed-limpieza-proveedores.mjs"
+    "seed-limpieza": "node scripts/seed-limpieza-proveedores.mjs",
+    "seed-demo-analisis": "node scripts/seed-demo-analisis.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
