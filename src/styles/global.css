@@ -206,6 +206,10 @@ button {
   display: flex;
   flex-direction: column;
   padding: 1.25rem 0.85rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .rc-sidebar-logo {
@@ -277,8 +281,11 @@ button {
     width: 100%;
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: visible;
     padding: 0.5rem;
     order: 2;
+    position: static;
+    height: auto;
   }
   .rc-sidebar-logo,
   .rc-sidebar-role,
